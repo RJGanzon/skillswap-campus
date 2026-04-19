@@ -91,35 +91,36 @@ const outgoing = await prisma.session.findMany({
                     </Badge>
                   </div>
                 </CardHeader>
-                {(s.message || s.status === "PENDING") && (
-                <CardContent>
-                {s.message && (
-                    <p className="text-sm bg-muted p-3 rounded-md mb-3 whitespace-pre-wrap">
-                    {s.message}
-                    </p>
-                )}
-                {s.status === "PENDING" && (
-                    <div className="flex gap-2">
-                    <form action={async () => { "use server"; await acceptSession(s.id); }}>
-                        <Button size="sm" type="submit">Accept</Button>
-                    </form>
-                    <form action={async () => { "use server"; await declineSession(s.id); }}>
-                        <Button size="sm" variant="outline" type="submit">Decline</Button>
-                    </form>
-                    </div>
-                )}
-                {["ACCEPTED", "ONGOING"].includes(s.status) && (
-                    <form action={async () => { "use server"; await completeSession(s.id); }}>
-                    <Button size="sm" type="submit">Mark as Completed</Button>
-                    </form>
-                )}
-                {s.status === "COMPLETED" && s.ratings.length === 0 && (
-                    <RateSessionDialog sessionId={s.id} rateeName={s.requester.name ?? "them"} />
-                )}
-                {s.status === "COMPLETED" && s.ratings.length > 0 && (
-                    <p className="text-sm text-muted-foreground">You&apos;ve rated this session</p>
-                )}
-                </CardContent>
+                {(s.message ||
+                  ["PENDING", "ACCEPTED", "ONGOING", "COMPLETED"].includes(s.status)) && (
+                  <CardContent>
+                    {s.message && (
+                      <p className="text-sm bg-muted p-3 rounded-md mb-3 whitespace-pre-wrap">
+                        {s.message}
+                      </p>
+                    )}
+                    {s.status === "PENDING" && (
+                      <div className="flex gap-2">
+                        <form action={async () => { "use server"; await acceptSession(s.id); }}>
+                          <Button size="sm" type="submit">Accept</Button>
+                        </form>
+                        <form action={async () => { "use server"; await declineSession(s.id); }}>
+                          <Button size="sm" variant="outline" type="submit">Decline</Button>
+                        </form>
+                      </div>
+                    )}
+                    {["ACCEPTED", "ONGOING"].includes(s.status) && (
+                      <form action={async () => { "use server"; await completeSession(s.id); }}>
+                        <Button size="sm" type="submit">Mark as Completed</Button>
+                      </form>
+                    )}
+                    {s.status === "COMPLETED" && s.ratings.length === 0 && (
+                      <RateSessionDialog sessionId={s.id} rateeName={s.requester.name ?? "them"} />
+                    )}
+                    {s.status === "COMPLETED" && s.ratings.length > 0 && (
+                      <p className="text-sm text-muted-foreground">You&apos;ve rated this session</p>
+                    )}
+                  </CardContent>
                 )}
               </Card>
             ))}
@@ -168,18 +169,29 @@ const outgoing = await prisma.session.findMany({
                     </Badge>
                   </div>
                 </CardHeader>
-                {["PENDING", "ACCEPTED"].includes(s.status) && (
+                {(["PENDING", "ACCEPTED", "ONGOING"].includes(s.status) ||
+                  s.status === "COMPLETED") && (
                   <CardContent>
-                    <form
-                      action={async () => {
-                        "use server";
-                        await cancelSession(s.id);
-                      }}
-                    >
-                      <Button size="sm" variant="outline" type="submit">
-                        Cancel Request
-                      </Button>
-                    </form>
+                    <div className="flex flex-wrap gap-2">
+                      {["PENDING", "ACCEPTED"].includes(s.status) && (
+                        <form action={async () => { "use server"; await cancelSession(s.id); }}>
+                          <Button size="sm" variant="outline" type="submit">
+                            Cancel Request
+                          </Button>
+                        </form>
+                      )}
+                      {["ACCEPTED", "ONGOING"].includes(s.status) && (
+                        <form action={async () => { "use server"; await completeSession(s.id); }}>
+                          <Button size="sm" type="submit">Mark as Completed</Button>
+                        </form>
+                      )}
+                      {s.status === "COMPLETED" && s.ratings.length === 0 && (
+                        <RateSessionDialog sessionId={s.id} rateeName={s.provider.name ?? "them"} />
+                      )}
+                      {s.status === "COMPLETED" && s.ratings.length > 0 && (
+                        <p className="text-sm text-muted-foreground">You&apos;ve rated this session</p>
+                      )}
+                    </div>
                   </CardContent>
                 )}
               </Card>
