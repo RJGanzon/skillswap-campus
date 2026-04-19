@@ -2,11 +2,12 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { acceptSession, declineSession, cancelSession } from "./actions";
+import { acceptSession, declineSession, cancelSession, completeSession } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RateSessionDialog } from "@/components/rate-session-dialog";
 import { SessionStatus } from "@prisma/client";
 
 const STATUS_LABELS: Record<SessionStatus, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
@@ -24,24 +25,25 @@ export default async function SessionsPage() {
   const userId = session.user.id;
 
   // Sessions where you're the provider (people requesting to learn from you)
-  const incoming = await prisma.session.findMany({
-    where: { providerId: userId },
-    include: {
-      skill: { select: { id: true, title: true } },
-      requester: { select: { id: true, name: true, image: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+const incoming = await prisma.session.findMany({
+  where: { providerId: userId },
+  include: {
+    skill: { select: { id: true, title: true } },
+    requester: { select: { id: true, name: true, image: true } },
+    ratings: { where: { raterId: userId }, select: { id: true } },
+  },
+  orderBy: { createdAt: "desc" },
+});
 
-  // Sessions where you're the requester (you want to learn)
-  const outgoing = await prisma.session.findMany({
-    where: { requesterId: userId },
-    include: {
-      skill: { select: { id: true, title: true } },
-      provider: { select: { id: true, name: true, image: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+const outgoing = await prisma.session.findMany({
+  where: { requesterId: userId },
+  include: {
+    skill: { select: { id: true, title: true } },
+    provider: { select: { id: true, name: true, image: true } },
+    ratings: { where: { raterId: userId }, select: { id: true } },
+  },
+  orderBy: { createdAt: "desc" },
+});
 
   return (
     <div className="max-w-4xl mx-auto p-8">
@@ -90,33 +92,34 @@ export default async function SessionsPage() {
                   </div>
                 </CardHeader>
                 {(s.message || s.status === "PENDING") && (
-                  <CardContent>
-                    {s.message && (
-                      <p className="text-sm bg-muted p-3 rounded-md mb-3 whitespace-pre-wrap">
-                        {s.message}
-                      </p>
-                    )}
-                    {s.status === "PENDING" && (
-                      <div className="flex gap-2">
-                        <form
-                          action={async () => {
-                            "use server";
-                            await acceptSession(s.id);
-                          }}
-                        >
-                          <Button size="sm" type="submit">Accept</Button>
-                        </form>
-                        <form
-                          action={async () => {
-                            "use server";
-                            await declineSession(s.id);
-                          }}
-                        >
-                          <Button size="sm" variant="outline" type="submit">Decline</Button>
-                        </form>
-                      </div>
-                    )}
-                  </CardContent>
+                <CardContent>
+                {s.message && (
+                    <p className="text-sm bg-muted p-3 rounded-md mb-3 whitespace-pre-wrap">
+                    {s.message}
+                    </p>
+                )}
+                {s.status === "PENDING" && (
+                    <div className="flex gap-2">
+                    <form action={async () => { "use server"; await acceptSession(s.id); }}>
+                        <Button size="sm" type="submit">Accept</Button>
+                    </form>
+                    <form action={async () => { "use server"; await declineSession(s.id); }}>
+                        <Button size="sm" variant="outline" type="submit">Decline</Button>
+                    </form>
+                    </div>
+                )}
+                {["ACCEPTED", "ONGOING"].includes(s.status) && (
+                    <form action={async () => { "use server"; await completeSession(s.id); }}>
+                    <Button size="sm" type="submit">Mark as Completed</Button>
+                    </form>
+                )}
+                {s.status === "COMPLETED" && s.ratings.length === 0 && (
+                    <RateSessionDialog sessionId={s.id} rateeName={s.requester.name ?? "them"} />
+                )}
+                {s.status === "COMPLETED" && s.ratings.length > 0 && (
+                    <p className="text-sm text-muted-foreground">✅ You&apos;ve rated this session</p>
+                )}
+                </CardContent>
                 )}
               </Card>
             ))}
