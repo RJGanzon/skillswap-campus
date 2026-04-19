@@ -41,16 +41,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) token.id = user.id;
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user && token.id) {
-        session.user.id = token.id as string;
+callbacks: {
+  async jwt({ token, user, trigger }) {
+    if (user) token.id = user.id;
+
+    // Refresh user data from DB when session is updated
+    if (trigger === "update" && token.id) {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.id as string },
+      });
+      if (dbUser) {
+        token.name = dbUser.name;
+        token.picture = dbUser.image;
       }
-      return session;
-    },
+    }
+
+    return token;
   },
+  async session({ session, token }) {
+    if (session.user && token.id) {
+      session.user.id = token.id as string;
+      if (token.name) session.user.name = token.name;
+      if (token.picture) session.user.image = token.picture as string;
+    }
+    return session;
+  },
+},
 });
