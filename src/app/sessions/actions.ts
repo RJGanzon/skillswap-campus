@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { notify } from "@/lib/notifications";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -45,6 +46,13 @@ export async function requestSession(skillId: string, message: string | null) {
     },
   });
 
+  await notify({
+    userId: skill.authorId,
+    type: "SESSION_REQUEST",
+    message: `${session.user.name ?? "Someone"} requested your skill "${skill.title}"`,
+    link: "/sessions",
+  });
+
   revalidatePath(`/skills/${skillId}`);
   revalidatePath("/sessions");
   redirect("/sessions");
@@ -64,6 +72,17 @@ export async function acceptSession(sessionId: string) {
     data: { status: "ACCEPTED" },
   });
 
+  const skill = await prisma.skill.findUnique({
+    where: { id: sess.skillId },
+    select: { title: true },
+  });
+  await notify({
+    userId: sess.requesterId,
+    type: "SESSION_ACCEPTED",
+    message: `${session.user.name ?? "Your provider"} accepted your request for "${skill?.title ?? "a skill"}"`,
+    link: "/sessions",
+  });
+
   revalidatePath("/sessions");
 }
 
@@ -79,6 +98,17 @@ export async function declineSession(sessionId: string) {
   await prisma.session.update({
     where: { id: sessionId },
     data: { status: "DECLINED" },
+  });
+
+  const skill = await prisma.skill.findUnique({
+    where: { id: sess.skillId },
+    select: { title: true },
+  });
+  await notify({
+    userId: sess.requesterId,
+    type: "SESSION_DECLINED",
+    message: `${session.user.name ?? "Your provider"} declined your request for "${skill?.title ?? "a skill"}"`,
+    link: "/sessions",
   });
 
   revalidatePath("/sessions");
@@ -98,6 +128,13 @@ export async function cancelSession(sessionId: string) {
   await prisma.session.update({
     where: { id: sessionId },
     data: { status: "CANCELLED" },
+  });
+
+  await notify({
+    userId: sess.providerId,
+    type: "SESSION_CANCELLED",
+    message: `${session.user.name ?? "The requester"} cancelled their session request`,
+    link: "/sessions",
   });
 
   revalidatePath("/sessions");
@@ -121,6 +158,15 @@ export async function completeSession(sessionId: string) {
   await prisma.session.update({
     where: { id: sessionId },
     data: { status: "COMPLETED" },
+  });
+
+  const otherUserId =
+    sess.requesterId === session.user.id ? sess.providerId : sess.requesterId;
+  await notify({
+    userId: otherUserId,
+    type: "SESSION_COMPLETED",
+    message: `${session.user.name ?? "The other participant"} marked your session as completed. Leave a rating?`,
+    link: "/sessions",
   });
 
   revalidatePath("/sessions");
@@ -179,6 +225,13 @@ export async function rateSession(
   await prisma.user.update({
     where: { id: rateeId },
     data: { reputation: Math.round(avg * 10) / 10 }, // round to 1 decimal
+  });
+
+  await notify({
+    userId: rateeId,
+    type: "RATING_RECEIVED",
+    message: `${session.user.name ?? "Someone"} left you a ${stars}-star rating`,
+    link: `/users/${rateeId}`,
   });
 
   revalidatePath("/sessions");

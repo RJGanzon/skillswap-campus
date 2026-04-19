@@ -35,7 +35,7 @@ export default async function Home() {
         </div>
 
         <p className="caption mt-12">
-          Made with ❤️ by Angeles University Foundation students
+          Made by Angeles University Foundation students
         </p>
       </div>
     </div>

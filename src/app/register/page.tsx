@@ -6,7 +6,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -43,37 +42,47 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Create your account</CardTitle>
-          <CardDescription>Join SkillSwap Campus</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" name="name" required />
+    <div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-semibold mb-6">
+            S
+          </Link>
+          <h1 className="h1-page">Create your account</h1>
+          <p className="body-sm mt-2">Join SkillSwap Campus in seconds</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Full name</Label>
+            <Input id="name" name="name" required autoComplete="name" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" name="email" type="email" required autoComplete="email" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" name="password" type="password" required minLength={6} autoComplete="new-password" />
+            <p className="caption">At least 6 characters</p>
+          </div>
+          {error && (
+            <div className="p-3 rounded-xl bg-destructive/10 border border-destructive/20">
+              <p className="text-sm text-destructive">{error}</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required minLength={6} />
-            </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating..." : "Register"}
-            </Button>
-            <p className="text-sm text-center text-muted-foreground">
-              Already have an account?{" "}
-              <Link href="/login" className="underline">Login</Link>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
+          )}
+          <Button type="submit" className="w-full" disabled={loading} size="lg">
+            {loading ? "Creating account..." : "Create Account"}
+          </Button>
+        </form>
+
+        <p className="body-sm text-center mt-8">
+          Already have an account?{" "}
+          <Link href="/login" className="text-foreground font-medium hover:underline">
+            Sign in
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

@@ -41,18 +41,23 @@ export function SkillForm({ action, defaultValues, mode }: SkillFormProps) {
   return (
     <form action={handleSubmit} className="space-y-6">
       {mode === "create" && (
-        <div className="space-y-2">
-          <Label htmlFor="type">I am...</Label>
-          <Select name="type" defaultValue={defaultValues?.type ?? "OFFER"} required>
-            <SelectTrigger id="type">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="OFFER">Offering a skill (I can teach)</SelectItem>
-              <SelectItem value="REQUEST">Requesting a skill (I want to learn)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium leading-none mb-2">I am...</legend>
+          <div className="grid grid-cols-2 gap-3">
+            <TypeOption
+              value="OFFER"
+              title="Offering"
+              description="I can teach this skill to others"
+              defaultChecked={(defaultValues?.type ?? "OFFER") === "OFFER"}
+            />
+            <TypeOption
+              value="REQUEST"
+              title="Requesting"
+              description="I want to learn this skill"
+              defaultChecked={defaultValues?.type === "REQUEST"}
+            />
+          </div>
+        </fieldset>
       )}
 
       <div className="space-y-2">
@@ -87,12 +92,12 @@ export function SkillForm({ action, defaultValues, mode }: SkillFormProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ACADEMIC">📚 Academic</SelectItem>
-            <SelectItem value="TECH">💻 Tech</SelectItem>
-            <SelectItem value="CREATIVE">🎨 Creative</SelectItem>
-            <SelectItem value="SPORTS">⚽ Sports</SelectItem>
-            <SelectItem value="LANGUAGE">🌍 Language</SelectItem>
-            <SelectItem value="OTHER">✨ Other</SelectItem>
+            <SelectItem value="ACADEMIC">Academic</SelectItem>
+            <SelectItem value="TECH">Tech</SelectItem>
+            <SelectItem value="CREATIVE">Creative</SelectItem>
+            <SelectItem value="SPORTS">Sports</SelectItem>
+            <SelectItem value="LANGUAGE">Language</SelectItem>
+            <SelectItem value="OTHER">Other</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -111,5 +116,34 @@ export function SkillForm({ action, defaultValues, mode }: SkillFormProps) {
         {submitting ? "Saving..." : mode === "create" ? "Post Skill" : "Save Changes"}
       </Button>
     </form>
+  );
+}
+
+function TypeOption({
+  value,
+  title,
+  description,
+  defaultChecked,
+}: {
+  value: "OFFER" | "REQUEST";
+  title: string;
+  description: string;
+  defaultChecked?: boolean;
+}) {
+  return (
+    <label className="cursor-pointer">
+      <input
+        type="radio"
+        name="type"
+        value={value}
+        defaultChecked={defaultChecked}
+        required
+        className="peer sr-only"
+      />
+      <div className="rounded-2xl border border-border bg-card p-4 transition-colors hover:border-border/80 peer-checked:border-primary peer-checked:bg-primary/5 peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background">
+        <div className="text-sm font-semibold tracking-tight">{title}</div>
+        <div className="text-xs text-muted-foreground mt-1 leading-snug">{description}</div>
+      </div>
+    </label>
   );
 }

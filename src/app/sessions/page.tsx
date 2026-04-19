@@ -117,7 +117,7 @@ const outgoing = await prisma.session.findMany({
                     <RateSessionDialog sessionId={s.id} rateeName={s.requester.name ?? "them"} />
                 )}
                 {s.status === "COMPLETED" && s.ratings.length > 0 && (
-                    <p className="text-sm text-muted-foreground">✅ You&apos;ve rated this session</p>
+                    <p className="text-sm text-muted-foreground">You&apos;ve rated this session</p>
                 )}
                 </CardContent>
                 )}

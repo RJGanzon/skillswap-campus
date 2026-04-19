@@ -2,6 +2,8 @@ import Link from "next/link";
 import { auth, signOut } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationsBell } from "@/components/notifications-bell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,12 +35,15 @@ export async function Navbar() {
             <NavLink href="/dashboard">Dashboard</NavLink>
             <NavLink href="/skills">Browse</NavLink>
             <NavLink href="/sessions">Sessions</NavLink>
+            <NavLink href="/messages">Messages</NavLink>
             <NavLink href="/profile">Profile</NavLink>
           </div>
         )}
 
         {/* Right Side */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          {user && <NotificationsBell />}
+          <ThemeToggle />
           {!user ? (
             <>
               <Button variant="ghost" size="sm" asChild>
@@ -78,6 +83,9 @@ export async function Navbar() {
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link href="/sessions" className="w-full">Sessions</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href="/messages" className="w-full">Messages</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link href="/skills" className="w-full">Browse Skills</Link>

@@ -70,7 +70,7 @@ export function RateSessionDialog({ sessionId, rateeName }: { sessionId: string;
                   onMouseLeave={() => setHovered(0)}
                   className="text-3xl transition-transform hover:scale-110"
                 >
-                  {(hovered || stars) >= n ? "⭐" : "☆"}
+                  {(hovered || stars) >= n ? "★" : "☆"}
                 </button>
               ))}
             </div>

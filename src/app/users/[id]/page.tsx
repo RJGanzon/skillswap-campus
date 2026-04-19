@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MessageButton } from "@/components/message-button";
 
 export default async function PublicProfilePage({
   params,
@@ -9,6 +11,7 @@ export default async function PublicProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const session = await auth();
 
   const user = await prisma.user.findUnique({
     where: { id },
@@ -35,25 +38,30 @@ export default async function PublicProfilePage({
 
   return (
     <div className="max-w-4xl mx-auto p-8">
-      <div className="flex items-center gap-6 mb-8">
-        <Avatar className="h-24 w-24">
-          <AvatarImage src={user.image ?? undefined} />
-          <AvatarFallback className="text-2xl">
-            {user.name?.[0]?.toUpperCase() ?? "U"}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <h1 className="text-3xl font-bold">{user.name}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Member since {user.createdAt.toLocaleDateString()}
-          </p>
-          <p className="text-sm mt-2">
-            ⭐ {user.reputation.toFixed(1)} reputation
-            {ratings.length > 0 && (
-              <span className="text-muted-foreground"> ({ratings.length} {ratings.length === 1 ? "rating" : "ratings"})</span>
-            )}
-          </p>
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <div className="flex items-center gap-6">
+          <Avatar className="h-24 w-24">
+            <AvatarImage src={user.image ?? undefined} />
+            <AvatarFallback className="text-2xl">
+              {user.name?.[0]?.toUpperCase() ?? "U"}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-3xl font-bold">{user.name}</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Member since {user.createdAt.toLocaleDateString()}
+            </p>
+            <p className="text-sm mt-2">
+              {user.reputation.toFixed(1)} reputation
+              {ratings.length > 0 && (
+                <span className="text-muted-foreground"> ({ratings.length} {ratings.length === 1 ? "rating" : "ratings"})</span>
+              )}
+            </p>
+          </div>
         </div>
+        {session?.user?.id && session.user.id !== user.id && (
+          <MessageButton userId={user.id} />
+        )}
       </div>
 
       <Card className="mb-8">
@@ -89,7 +97,7 @@ export default async function PublicProfilePage({
                   <div>
                     <p className="text-sm font-medium">{r.rater.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {"⭐".repeat(r.stars)} · {r.createdAt.toLocaleDateString()}
+                      {r.stars} / 5 · {r.createdAt.toLocaleDateString()}
                     </p>
                   </div>
                 </div>

@@ -43,6 +43,7 @@
   --chart-5: oklch(70% 0.15 20);
 }
 
+/* Explicit dark class — set by the theme toggle when the user chooses dark. */
 .dark {
   --background: oklch(10% 0 0);
   --foreground: oklch(98% 0 0);
@@ -71,6 +72,40 @@
   --border: oklch(22% 0 0);
   --input: oklch(22% 0 0);
   --ring: oklch(40% 0 0);
+}
+
+/* System preference fallback so "system" theme avoids a light flash on cold load.
+   Skipped if the user has explicitly chosen light (.light on <html>). */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark) {
+    --background: oklch(10% 0 0);
+    --foreground: oklch(98% 0 0);
+
+    --card: oklch(13% 0 0);
+    --card-foreground: oklch(98% 0 0);
+
+    --popover: oklch(13% 0 0);
+    --popover-foreground: oklch(98% 0 0);
+
+    --primary: oklch(98% 0 0);
+    --primary-foreground: oklch(10% 0 0);
+
+    --secondary: oklch(20% 0 0);
+    --secondary-foreground: oklch(98% 0 0);
+
+    --muted: oklch(20% 0 0);
+    --muted-foreground: oklch(65% 0 0);
+
+    --accent: oklch(22% 0 0);
+    --accent-foreground: oklch(98% 0 0);
+
+    --destructive: oklch(60% 0.2 25);
+    --destructive-foreground: oklch(98% 0 0);
+
+    --border: oklch(22% 0 0);
+    --input: oklch(22% 0 0);
+    --ring: oklch(40% 0 0);
+  }
 }
 
 @theme inline {

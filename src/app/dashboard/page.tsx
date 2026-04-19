@@ -29,7 +29,7 @@ export default async function DashboardPage() {
     <div className="max-w-5xl mx-auto px-4 py-12">
       <div className="mb-10">
         <h1 className="h1-page">
-          Welcome back, {session.user.name?.split(" ")[0]} 👋
+          Welcome back, {session.user.name?.split(" ")[0]}
         </h1>
         <p className="body-sm mt-2">
           Here&apos;s a quick look at your SkillSwap Campus activity.
