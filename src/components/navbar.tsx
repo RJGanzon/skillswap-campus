@@ -26,17 +26,20 @@ export async function Navbar() {
 
         {/* Center Links */}
         {user && (
-          <div className="hidden md:flex items-center gap-6 text-sm">
+        <div className="hidden md:flex items-center gap-6 text-sm">
             <Link href="/dashboard" className="hover:text-primary">
-              Dashboard
+            Dashboard
             </Link>
             <Link href="/skills" className="hover:text-primary">
-              Browse Skills
+            Browse Skills
+            </Link>
+            <Link href="/sessions" className="hover:text-primary">
+            Sessions
             </Link>
             <Link href="/profile" className="hover:text-primary">
-              My Profile
+            My Profile
             </Link>
-          </div>
+        </div>
         )}
 
         {/* Right Side */}
@@ -72,15 +75,18 @@ export async function Navbar() {
                   </DropdownMenuLabel>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Link href="/dashboard" className="w-full">Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/profile" className="w-full">My Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/skills" className="w-full">Browse Skills</Link>
-                </DropdownMenuItem>
+                    <DropdownMenuItem>
+                    <Link href="/dashboard" className="w-full">Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                    <Link href="/profile" className="w-full">My Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                    <Link href="/sessions" className="w-full">Sessions</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                    <Link href="/skills" className="w-full">Browse Skills</Link>
+                    </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <form
                   action={async () => {

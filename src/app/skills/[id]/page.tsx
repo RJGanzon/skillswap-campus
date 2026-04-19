@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RequestSessionDialog } from "@/components/request-session-dialog";
 import { Category } from "@prisma/client";
 
 const CATEGORY_LABELS: Record<Category, string> = {
@@ -105,14 +106,17 @@ export default async function SkillDetailPage({
                 <Button variant="destructive" type="submit">Delete</Button>
               </form>
             </div>
-          ) : session?.user ? (
+            ) : session?.user ? (
             <div className="pt-4 border-t">
-              <Button>Request Session</Button>
-              <p className="text-xs text-muted-foreground mt-2">
-                Session requests coming in the next update.
-              </p>
+                {skill.type === "OFFER" ? (
+                <RequestSessionDialog skillId={skill.id} />
+                ) : (
+                <p className="text-sm text-muted-foreground">
+                    This is a skill request. Reach out to {skill.author.name?.split(" ")[0]} if you can teach it!
+                </p>
+                )}
             </div>
-          ) : (
+            ) : (
             <div className="pt-4 border-t">
               <Button asChild>
                 <Link href="/login">Login to request this skill</Link>
