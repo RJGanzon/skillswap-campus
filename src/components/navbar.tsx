@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
-  DropdownMenuGroup,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -54,32 +54,32 @@ export async function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 rounded-full hover:opacity-80 transition outline-none">
                 <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.image ?? undefined} />
-                    <AvatarFallback>
+                  <AvatarImage src={user.image ?? undefined} />
+                  <AvatarFallback>
                     {user.name?.[0]?.toUpperCase() ?? "U"}
-                    </AvatarFallback>
+                  </AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuGroup>
-                    <DropdownMenuLabel>
+                  <DropdownMenuLabel>
                     <div className="flex flex-col">
-                        <span className="font-medium">{user.name}</span>
-                        <span className="text-xs text-muted-foreground font-normal">
+                      <span className="font-medium">{user.name}</span>
+                      <span className="text-xs text-muted-foreground font-normal">
                         {user.email}
-                        </span>
+                      </span>
                     </div>
-                    </DropdownMenuLabel>
+                  </DropdownMenuLabel>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard">Dashboard</Link>
+                <DropdownMenuItem>
+                  <Link href="/dashboard" className="w-full">Dashboard</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">My Profile</Link>
+                <DropdownMenuItem>
+                  <Link href="/profile" className="w-full">My Profile</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/skills">Browse Skills</Link>
+                <DropdownMenuItem>
+                  <Link href="/skills" className="w-full">Browse Skills</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <form
