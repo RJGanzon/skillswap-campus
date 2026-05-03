@@ -171,6 +171,28 @@
   }
 }
 
+/* SVG-based film grain / noise overlay. Layer above gradients for texture. */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Soft radial glow used behind hero. */
+.bg-hero-glow {
+  background:
+    radial-gradient(60% 60% at 20% 10%, oklch(70% 0.18 250 / 0.18), transparent 70%),
+    radial-gradient(50% 50% at 90% 30%, oklch(75% 0.18 320 / 0.16), transparent 70%),
+    radial-gradient(70% 60% at 50% 100%, oklch(75% 0.18 160 / 0.14), transparent 70%);
+}
+
+/* Slow float for decorative elements */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
 /* Subtle fade-in for pages */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(4px); }
