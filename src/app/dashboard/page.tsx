@@ -17,7 +17,6 @@ import {
   Sparkles,
   Star,
   TrendingUp,
-  Users,
   Zap,
 } from "lucide-react";
 
@@ -37,22 +36,36 @@ export default async function DashboardPage() {
     nextSession,
     recentSkills,
     unreadNotifications,
+    suggestedSkills,
   ] = await Promise.all([
     prisma.skill.count({ where: { authorId: userId } }),
-    prisma.session.count({ where: { providerId: userId, status: "PENDING" } }),
+
+    prisma.session.count({
+      where: {
+        providerId: userId,
+        status: "PENDING",
+      },
+    }),
+
     prisma.session.count({
       where: {
         OR: [{ requesterId: userId }, { providerId: userId }],
         status: { in: ["ACCEPTED", "ONGOING"] },
       },
     }),
+
     prisma.session.count({
       where: {
         OR: [{ requesterId: userId }, { providerId: userId }],
         status: "COMPLETED",
       },
     }),
-    prisma.user.findUnique({ where: { id: userId }, select: { reputation: true } }),
+
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { reputation: true },
+    }),
+
     prisma.session.findFirst({
       where: {
         OR: [{ requesterId: userId }, { providerId: userId }],
@@ -61,24 +74,80 @@ export default async function DashboardPage() {
       },
       orderBy: { scheduledAt: "asc" },
       include: {
-        skill: { select: { title: true, category: true } },
-        requester: { select: { id: true, name: true, image: true } },
-        provider: { select: { id: true, name: true, image: true } },
+        skill: {
+          select: {
+            title: true,
+            category: true,
+          },
+        },
+        requester: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        provider: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
       },
     }),
+
     prisma.skill.findMany({
       where: { authorId: userId },
       orderBy: { createdAt: "desc" },
       take: 3,
-      select: { id: true, title: true, type: true, category: true, createdAt: true },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        category: true,
+        createdAt: true,
+      },
     }),
-    prisma.notification.count({ where: { userId, read: false } }),
+
+    prisma.notification.count({
+      where: {
+        userId,
+        read: false,
+      },
+    }),
+
+    // NEW FEATURE
+    prisma.skill.findMany({
+      where: {
+        NOT: { authorId: userId },
+      },
+      take: 4,
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        type: true,
+        author: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    }),
   ]);
 
   const firstName = session.user.name?.split(" ")[0] ?? "there";
+
   const reputation = user?.reputation.toFixed(1) ?? "—";
+
   const otherParty =
-    nextSession?.requester.id === userId ? nextSession?.provider : nextSession?.requester;
+    nextSession?.requester.id === userId
+      ? nextSession?.provider
+      : nextSession?.requester;
 
   return (
     <div className="animate-in mx-auto max-w-6xl space-y-10 px-4 py-14 md:space-y-14 md:px-6 md:py-20">
@@ -90,27 +159,45 @@ export default async function DashboardPage() {
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs backdrop-blur">
               <Sparkles className="h-3.5 w-3.5" />
+
               <span className="text-muted-foreground">
-                {now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+                {now.toLocaleDateString(undefined, {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
               </span>
             </div>
+
             <h1 className="h1-display">
-              Welcome back, <span className="text-muted-foreground">{firstName}</span>
+              Welcome back,{" "}
+              <span className="text-muted-foreground">
+                {firstName}
+              </span>
             </h1>
-            <p className="body-sm">Quick look at your SkillSwap Campus activity.</p>
+
+            <p className="body-sm">
+              Quick look at your SkillSwap Campus activity.
+            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-background/70 px-5 py-4 backdrop-blur">
               <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+
               <div>
                 <div className="caption">Reputation</div>
+
                 <div className="text-lg font-semibold tabular-nums">
                   {reputation}
-                  <span className="ml-1 text-sm font-normal text-muted-foreground">/ 5</span>
+
+                  <span className="ml-1 text-sm font-normal text-muted-foreground">
+                    / 5
+                  </span>
                 </div>
               </div>
             </div>
+
             {unreadNotifications > 0 && (
               <Button variant="outline" asChild>
                 <Link href="/notifications">
@@ -127,17 +214,21 @@ export default async function DashboardPage() {
       {pendingIncoming > 0 && (
         <Card className="bg-hero-glow relative overflow-hidden border-primary/30 py-7">
           <div className="bg-noise absolute inset-0 opacity-[0.06] mix-blend-overlay" />
+
           <CardHeader className="relative">
             <div className="flex items-start justify-between gap-6">
               <div className="space-y-2">
                 <CardTitle className="h3-card flex items-center gap-2">
                   <Bell className="h-4 w-4" />
-                  {pendingIncoming} pending session {pendingIncoming === 1 ? "request" : "requests"}
+                  {pendingIncoming} pending session{" "}
+                  {pendingIncoming === 1 ? "request" : "requests"}
                 </CardTitle>
+
                 <CardDescription>
                   Review and decide whether to accept or decline.
                 </CardDescription>
               </div>
+
               <Button asChild size="sm">
                 <Link href="/sessions">
                   Review <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -156,6 +247,7 @@ export default async function DashboardPage() {
           value={skillCount.toString()}
           accent="from-blue-500/15 to-blue-500/0"
         />
+
         <StatCard
           icon={Bell}
           label="Pending"
@@ -163,12 +255,14 @@ export default async function DashboardPage() {
           accent="from-amber-500/15 to-amber-500/0"
           highlight={pendingIncoming > 0}
         />
+
         <StatCard
           icon={Zap}
           label="Active"
           value={activeCount.toString()}
           accent="from-emerald-500/15 to-emerald-500/0"
         />
+
         <StatCard
           icon={TrendingUp}
           label="Completed"
@@ -187,22 +281,34 @@ export default async function DashboardPage() {
                 <CalendarDays className="h-4 w-4" />
                 Next session
               </CardTitle>
-              <Link href="/sessions" className="caption hover:text-foreground">
-                View all <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
+
+              <Link
+                href="/sessions"
+                className="caption hover:text-foreground"
+              >
+                View all{" "}
+                <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
               </Link>
             </div>
           </CardHeader>
+
           <CardContent className="px-6">
             {nextSession ? (
               <div className="space-y-5">
                 <div>
-                  <div className="text-base font-medium">{nextSession.skill.title}</div>
+                  <div className="text-base font-medium">
+                    {nextSession.skill.title}
+                  </div>
+
                   <div className="caption mt-0.5">
-                    with {otherParty?.name ?? "a peer"} · {nextSession.skill.category}
+                    with {otherParty?.name ?? "a peer"} ·{" "}
+                    {nextSession.skill.category}
                   </div>
                 </div>
+
                 <div className="flex items-center gap-2 text-sm">
                   <CalendarDays className="h-4 w-4 text-muted-foreground" />
+
                   <span className="tabular-nums">
                     {nextSession.scheduledAt?.toLocaleString(undefined, {
                       weekday: "short",
@@ -212,18 +318,29 @@ export default async function DashboardPage() {
                       minute: "2-digit",
                     })}
                   </span>
+
                   <Badge variant="secondary" className="ml-auto">
                     {nextSession.status}
                   </Badge>
                 </div>
-                <Button size="sm" variant="outline" asChild className="w-full">
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  asChild
+                  className="w-full"
+                >
                   <Link href="/sessions">Open session</Link>
                 </Button>
               </div>
             ) : (
               <div className="space-y-3 py-6 text-center">
                 <CalendarDays className="mx-auto h-9 w-9 text-muted-foreground/50" />
-                <p className="body-sm">No upcoming sessions scheduled.</p>
+
+                <p className="body-sm">
+                  No upcoming sessions scheduled.
+                </p>
+
                 <Button size="sm" variant="link" asChild>
                   <Link href="/skills">Find a skill swap</Link>
                 </Button>
@@ -240,11 +357,17 @@ export default async function DashboardPage() {
                 <BookOpen className="h-4 w-4" />
                 Your recent skills
               </CardTitle>
-              <Link href="/profile" className="caption hover:text-foreground">
-                Manage <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
+
+              <Link
+                href="/profile"
+                className="caption hover:text-foreground"
+              >
+                Manage{" "}
+                <ArrowUpRight className="ml-0.5 inline h-3 w-3" />
               </Link>
             </div>
           </CardHeader>
+
           <CardContent className="px-6">
             {recentSkills.length > 0 ? (
               <ul className="space-y-3">
@@ -255,10 +378,22 @@ export default async function DashboardPage() {
                       className="group flex items-center justify-between gap-4 rounded-xl border border-border/60 px-4 py-3.5 transition-colors hover:bg-muted/50"
                     >
                       <div className="min-w-0 space-y-1">
-                        <div className="truncate text-sm font-medium">{s.title}</div>
-                        <div className="caption">{s.category}</div>
+                        <div className="truncate text-sm font-medium">
+                          {s.title}
+                        </div>
+
+                        <div className="caption">
+                          {s.category}
+                        </div>
                       </div>
-                      <Badge variant={s.type === "OFFER" ? "default" : "secondary"}>
+
+                      <Badge
+                        variant={
+                          s.type === "OFFER"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
                         {s.type}
                       </Badge>
                     </Link>
@@ -268,9 +403,15 @@ export default async function DashboardPage() {
             ) : (
               <div className="space-y-3 py-6 text-center">
                 <Lightbulb className="mx-auto h-9 w-9 text-muted-foreground/50" />
-                <p className="body-sm">No skills posted yet.</p>
+
+                <p className="body-sm">
+                  No skills posted yet.
+                </p>
+
                 <Button size="sm" variant="link" asChild>
-                  <Link href="/skills/new">Post your first skill</Link>
+                  <Link href="/skills/new">
+                    Post your first skill
+                  </Link>
                 </Button>
               </div>
             )}
@@ -281,6 +422,7 @@ export default async function DashboardPage() {
       {/* ─────────── QUICK ACTIONS ─────────── */}
       <div className="space-y-5">
         <h2 className="h2-section">Quick actions</h2>
+
         <div className="grid gap-5 md:grid-cols-3 md:gap-6">
           <ActionCard
             icon={Lightbulb}
@@ -289,6 +431,7 @@ export default async function DashboardPage() {
             href="/skills/new"
             accent="from-blue-500/15 to-blue-500/0"
           />
+
           <ActionCard
             icon={Compass}
             title="Browse Skills"
@@ -296,6 +439,7 @@ export default async function DashboardPage() {
             href="/skills"
             accent="from-emerald-500/15 to-emerald-500/0"
           />
+
           <ActionCard
             icon={MessageCircle}
             title="Messages"
@@ -303,6 +447,60 @@ export default async function DashboardPage() {
             href="/messages"
             accent="from-violet-500/15 to-violet-500/0"
           />
+        </div>
+      </div>
+
+      {/* ─────────── SUGGESTED SKILLS ─────────── */}
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <h2 className="h2-section">Suggested skills</h2>
+
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/skills">
+              Explore more <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {suggestedSkills.map((skill) => (
+            <Link key={skill.id} href={`/skills/${skill.id}`}>
+              <Card className="group h-full border-border/60 transition-all hover:border-primary/40 hover:shadow-md">
+                <CardContent className="flex h-full flex-col justify-between p-5">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <Badge
+                        variant={
+                          skill.type === "OFFER"
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
+                        {skill.type}
+                      </Badge>
+
+                      <span className="caption">
+                        {skill.category}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base font-semibold transition-colors group-hover:text-primary">
+                      {skill.title}
+                    </h3>
+
+                    <p className="caption">
+                      Posted by {skill.author.name ?? "Student"}
+                    </p>
+                  </div>
+
+                  <div className="mt-5 flex items-center text-sm font-medium text-primary">
+                    View skill
+                    <ArrowUpRight className="ml-1 h-4 w-4" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
       </div>
     </div>
@@ -323,17 +521,29 @@ function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <Card className={`relative overflow-hidden py-6 ${highlight ? "border-primary/40" : ""}`}>
+    <Card
+      className={`relative overflow-hidden py-6 ${
+        highlight ? "border-primary/40" : ""
+      }`}
+    >
       <div className={`absolute inset-0 bg-gradient-to-br ${accent}`} />
+
       <div className="bg-noise absolute inset-0 opacity-[0.05] mix-blend-overlay" />
+
       <CardHeader className="relative px-5 pb-3">
         <div className="flex items-center justify-between">
-          <CardDescription className="caption">{label}</CardDescription>
+          <CardDescription className="caption">
+            {label}
+          </CardDescription>
+
           <Icon className="h-4 w-4 text-muted-foreground" />
         </div>
       </CardHeader>
+
       <CardContent className="relative px-5">
-        <p className="text-3xl font-semibold tracking-tight tabular-nums">{value}</p>
+        <p className="text-3xl font-semibold tracking-tight tabular-nums">
+          {value}
+        </p>
       </CardContent>
     </Card>
   );
@@ -356,16 +566,23 @@ function ActionCard({
     <Link href={href} className="group">
       <Card className="relative h-full overflow-hidden py-7 transition-all group-hover:border-primary/40 group-hover:shadow-lg">
         <div className={`absolute inset-0 bg-gradient-to-br ${accent}`} />
+
         <div className="bg-noise absolute inset-0 opacity-[0.05] mix-blend-overlay" />
+
         <CardHeader className="relative space-y-3 px-6">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-foreground text-background">
             <Icon className="h-5 w-5" />
           </div>
+
           <CardTitle className="h3-card flex items-center justify-between">
             {title}
+
             <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </CardTitle>
-          <CardDescription className="leading-relaxed">{description}</CardDescription>
+
+          <CardDescription className="leading-relaxed">
+            {description}
+          </CardDescription>
         </CardHeader>
       </Card>
     </Link>
