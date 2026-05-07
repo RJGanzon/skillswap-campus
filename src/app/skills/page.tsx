@@ -36,7 +36,8 @@ type SearchParams = Promise<{
   type?: string;
   category?: string;
   availability?: string;
-}>;
+  page?: string;
+}>;;
 
 const CATEGORY_LABELS: Record<Category, string> = {
   ACADEMIC: "Academic",
@@ -100,7 +101,12 @@ export default async function BrowseSkillsPage({
   searchParams: SearchParams;
 }) {
   const session = await auth();
-  const { q, type, category, availability } = await searchParams;
+  const { q, type, category, availability, page } = await searchParams;
+
+  // Pagination
+  const pageNum = Math.max(1, parseInt(page || "1", 10));
+  const limit = 20;
+  const skip = (pageNum - 1) * limit;
 
   const where: Prisma.SkillWhereInput = {};
   if (q) {
@@ -117,15 +123,23 @@ export default async function BrowseSkillsPage({
     where.availability = { contains: availability, mode: "insensitive" };
   }
 
-  const skills = await prisma.skill.findMany({
-    where,
-    include: {
-      author: {
-        select: { id: true, name: true, image: true, reputation: true },
+  // Get total count and paginated results
+  const [totalCount, skills] = await Promise.all([
+    prisma.skill.count({ where }),
+    prisma.skill.findMany({
+      where,
+      include: {
+        author: {
+          select: { id: true, name: true, image: true, reputation: true },
+        },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      skip,
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / limit);
 
   const offerCount = skills.filter((s) => s.type === "OFFER").length;
   const requestCount = skills.length - offerCount;
@@ -322,6 +336,27 @@ export default async function BrowseSkillsPage({
               </Link>
             );
           })}
+        </div>
+      )}
+
+      {/* ─────────── PAGINATION ─────────── */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-8">
+          {pageNum > 1 && (
+            <Link href={buildHref({ q, type, category, availability, page: String(pageNum - 1) })}>
+              <Button variant="outline" size="sm">Previous</Button>
+            </Link>
+          )}
+          
+          <span className="text-sm text-muted-foreground">
+            Page {pageNum} of {totalPages}
+          </span>
+          
+          {pageNum < totalPages && (
+            <Link href={buildHref({ q, type, category, availability, page: String(pageNum + 1) })}>
+              <Button variant="outline" size="sm">Next</Button>
+            </Link>
+          )}
         </div>
       )}
     </div>
